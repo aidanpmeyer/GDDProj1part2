@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class PlayerControler : MonoBehaviour
 {
     # region Movement_variables
-    public float movespeed;
+    public float startmovespeed;
+    private float movespeed;
     float x_input;
     float y_input;
     #endregion
@@ -19,10 +20,12 @@ public class PlayerControler : MonoBehaviour
     public float Damage;
     public float attackspeed = 1;
     float attackTimer;
+    private float speedTimer;
     public float hitboxtiming;
     public float endanimationtiming;
     bool isAttacking;
     Vector2 currDirection;
+    
 
     #endregion
 
@@ -40,6 +43,7 @@ public class PlayerControler : MonoBehaviour
  
     private void Awake()
     {
+        movespeed = startmovespeed;
         PlayerRB = GetComponent<Rigidbody2D>();
         attackTimer = 0;
         anim = GetComponent<Animator>();
@@ -58,6 +62,17 @@ public class PlayerControler : MonoBehaviour
         y_input = Input.GetAxisRaw("Vertical");
 
         Move();
+       
+
+        if(speedTimer <= 0)
+        {
+            if (movespeed > startmovespeed){
+              movespeed = startmovespeed;  
+            }
+            
+        } else{
+            speedTimer -= Time.deltaTime;
+        }
 
         if(Input.GetKeyDown(KeyCode.J) && attackTimer <= 0)
         {
@@ -131,14 +146,18 @@ public class PlayerControler : MonoBehaviour
         FindObjectOfType<AudioManager>().Play("Player");
         yield return new WaitForSeconds(hitboxtiming);
         Debug.Log("Casting hitbox now");
-        RaycastHit2D[] hits = Physics2D.BoxCastAll(PlayerRB.position + currDirection, Vector2.one, 0f, Vector2.zero);
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(PlayerRB.position, Vector2.one, 0f, Vector2.zero);
         foreach (RaycastHit2D hit in hits) 
         {
-           Debug.Log(hit.transform.name);
            if(hit.transform.CompareTag("Enemy"))
            {
                Debug.Log("Tons of Damage");
                hit.transform.GetComponent<Enemy>().TakeDamage(Damage);
+           }
+           if(hit.transform.CompareTag("Enemy2"))
+           {
+               Debug.Log("Tons of Damage");
+               hit.transform.GetComponent<Enemy2>().TakeDamage(Damage);
            }
         }
         yield return new WaitForSeconds(hitboxtiming);
@@ -203,6 +222,14 @@ public class PlayerControler : MonoBehaviour
                 hit.transform.GetComponent<Chest>().Interact();
             }
         }
+    }
+    #endregion
+
+    #region SpeedUp
+    public void SpeedUp(float speedamount)
+    {
+        movespeed = speedamount;
+        speedTimer = 5;
     }
     #endregion
 }
